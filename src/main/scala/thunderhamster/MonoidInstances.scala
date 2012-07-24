@@ -5,7 +5,7 @@ import blueeyes.json.JsonAST
 import blueeyes.json.JsonAST.{JValue, JNothing}
 
 
-trait MonoidInstances {
+object MonoidInstances {
 
   implicit object JValueMonoid extends Monoid[JsonAST.JValue] {
     def zero = JNothing

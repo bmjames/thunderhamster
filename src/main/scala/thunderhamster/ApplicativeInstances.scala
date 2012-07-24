@@ -4,7 +4,7 @@ import scalaz.Applicative
 import akka.dispatch.{ExecutionContext, Future}
 
 
-trait ApplicativeInstances {
+object ApplicativeInstances {
 
   implicit def FutureApplicative(implicit executor: ExecutionContext) = new Applicative[Future] {
     def point[A](a: => A) = Future(a)
