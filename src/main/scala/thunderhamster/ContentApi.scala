@@ -15,8 +15,4 @@ class ContentApi(client: HttpClient[JsonAST.JValue]) {
     client.get[JsonAST.JValue](url) map (_.content map (_ \\ "results"))
   }
 
-  def getArticles(limit: Int, maxWordcount: Int, minWordcount: Int = 0): Future[Option[JsonAST.JValue]] =
-    getContent("tag" -> "type/article", "min-wordcount" -> minWordcount.toString,
-      "max-wordcount" -> maxWordcount.toString, "page-size" -> limit.toString)
-
 }

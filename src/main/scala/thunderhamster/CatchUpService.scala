@@ -4,7 +4,7 @@ import akka.dispatch.{ExecutionContext, Future}
 import blueeyes.BlueEyesServiceBuilder
 import blueeyes.core.data.{BijectionsChunkJson, BijectionsChunkString}
 import blueeyes.core.service.engines.HttpClientXLightWeb
-import blueeyes.core.http.MimeTypes.{json, application}
+import blueeyes.core.http.MimeTypes.{text, html, json, application}
 import blueeyes.core.data.ByteChunk
 import blueeyes.core.http._
 import blueeyes.json.JsonAST.JValue
@@ -27,32 +27,51 @@ trait CatchUpService extends BlueEyesServiceBuilder
       Future(new ContentApi(client))
     } ->
     request { api =>
-      produce(application/json) {
-
+      produce(text/html) {
         path("/") {
           get { _: Req =>
-            FoundResponse(location="/quick")
+            val greeting = <html><body><ul>
+              <h3>Catch-up service sample JSON responses:</h3>
+              <li><a href="/quick/news">Quick news catch-up (3 short stories, 2 medium)</a></li>
+              <li><a href="/long/features">Long feature read (5 long features)</a></li>
+            </ul></body></html>
+            Future(HttpResponse(content=Some(greeting.toString)))
           }
-        } ~
-        path("/quick") {
+        }
+      } ~
+      produce(application/json) {
+        path("/quick/news") {
           get { _: Req =>
 
-            val shortStories = api.getArticles(limit=3, maxWordcount=500, minWordcount=50)
-            val medStory = api.getArticles(limit=1, maxWordcount=1000, minWordcount=501)
-            val longStory = api.getArticles(limit=1, maxWordcount=2000, minWordcount=1001)
+            val shortStories = api.getContent(
+              "page-size" -> "3",
+              "tag" -> "tone/news",
+              "min-wordcount" -> "50",
+              "max-wordcount" -> "500"
+            )
+            val longStories = api.getContent(
+              "page-size" -> "2",
+              "tag" -> "tone/news",
+              "min-wordcount" -> "501",
+              "max-wordcount" -> "2000"
+            )
 
-            BundleResponse(shortStories, medStory, longStory)
+            BundleResponse(shortStories, longStories)
           }
         } ~
-        path("/long") {
+        path("/long/features") {
           get { _: Req =>
 
-            val longStories = api.getArticles(limit=3, maxWordcount=20000, minWordcount=2000)
+            val longStories = api.getContent(
+              "page-size" -> "5",
+              "tag" -> "tone/features",
+              "min-wordcount" -> "1001",
+              "max-wordcount" -> "2000"
+            )
 
             BundleResponse(longStories)
           }
         }
-
       }
     } ->
     shutdown { _ => Future(()) }
