@@ -17,6 +17,8 @@ import ApplicativeInstances._, MonoidInstances._
 trait CatchUpService extends BlueEyesServiceBuilder
     with BijectionsChunkString with BijectionsChunkJson {
 
+  type Req = HttpRequest[ByteChunk]
+
   val catchUp = service("catchup", "1.0.0") { context =>
 
     startup {
@@ -28,12 +30,12 @@ trait CatchUpService extends BlueEyesServiceBuilder
       produce(application/json) {
 
         path("/") {
-          get { _: HttpRequest[ByteChunk] =>
+          get { _: Req =>
             FoundResponse(location="/quick")
           }
         } ~
         path("/quick") {
-          get { _: HttpRequest[ByteChunk] =>
+          get { _: Req =>
 
             val shortStories = api.getArticles(limit=3, maxWordcount=500, minWordcount=50)
             val medStory = api.getArticles(limit=1, maxWordcount=1000, minWordcount=501)
@@ -43,7 +45,7 @@ trait CatchUpService extends BlueEyesServiceBuilder
           }
         } ~
         path("/long") {
-          get { _: HttpRequest[ByteChunk] =>
+          get { _: Req =>
 
             val longStories = api.getArticles(limit=3, maxWordcount=20000, minWordcount=2000)
 
