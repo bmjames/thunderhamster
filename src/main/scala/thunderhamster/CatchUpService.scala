@@ -1,6 +1,6 @@
 package thunderhamster
 
-import akka.dispatch.{ExecutionContext, Future}
+import akka.dispatch.{MessageDispatcher, Future}
 import blueeyes.BlueEyesServiceBuilder
 import blueeyes.core.data.{BijectionsChunkJson, BijectionsChunkString}
 import blueeyes.core.service.engines.HttpClientXLightWeb
@@ -10,8 +10,8 @@ import blueeyes.core.http._
 import blueeyes.json.JsonAST.JValue
 import blueeyes.core.http.HttpStatusCodes.Found
 import blueeyes.core.http.HttpHeaders.Location
+import blueeyes.bkka.AkkaTypeClasses._
 import scalaz._, Scalaz._
-import ApplicativeInstances._, MonoidInstances._
 
 
 trait CatchUpService extends BlueEyesServiceBuilder
@@ -76,11 +76,11 @@ trait CatchUpService extends BlueEyesServiceBuilder
 }
 
 object BundleResponse {
-  def apply(responses: Future[Option[JValue]]*)(implicit ex: ExecutionContext): Future[HttpResponse[JValue]] =
+  def apply(responses: Future[Option[JValue]]*)(implicit ctx: MessageDispatcher): Future[HttpResponse[JValue]] =
     responses.toList.sequence map (stories => HttpResponse(content = stories.suml))
 }
 
 object FoundResponse {
-  def apply[T](location: T)(implicit ex: ExecutionContext, ev: T => URI): Future[HttpResponse[JValue]] =
+  def apply[T](location: T)(implicit ctx: MessageDispatcher, ev: T => URI): Future[HttpResponse[JValue]] =
     Future(HttpResponse[JValue](status=HttpStatus(Found), headers=HttpHeaders(Seq(Location(location)))))
 }
